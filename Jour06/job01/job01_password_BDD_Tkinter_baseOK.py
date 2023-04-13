@@ -1,9 +1,10 @@
 import hashlib
 import re
 import os
+import select
+import sys
 import tkinter as tk
 import json
-import logging
 
 # Chemin vers la base de données
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -16,6 +17,9 @@ if not os.path.exists(DB_PATH):
     with open(DB_PATH, "w") as f:
         json.dump({}, f)
 
+def is_input_ready():
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+
 def reset_passwords():
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
@@ -27,6 +31,12 @@ def compare_passwords(password1, password2):
     return password1 == password2
 
 def add_password():
+    # Désactive les boutons
+    button1.config(state="disabled")
+    button2.config(state="disabled")
+    button3.config(state="disabled")
+    button4.config(state="disabled")
+
     website = input("Entrez le nom du site web : ")
     username = input("Entrez votre nom d'utilisateur : ")
 
@@ -35,6 +45,11 @@ def add_password():
 
     if website in passwords and username in passwords[website]:
         print("Un mot de passe pour ce site web et cet identifiant existe déjà.")
+        # Réactive les boutons
+        button1.config(state="normal")
+        button2.config(state="normal")
+        button3.config(state="normal")
+        button4.config(state="normal")
         return
 
     password = input("Entrez votre mot de passe : ")
@@ -73,6 +88,12 @@ def add_password():
 
     with open(DB_PATH, "w") as f:
         json.dump(passwords, f)
+
+    # Réactive les boutons
+    button1.config(state="normal")
+    button2.config(state="normal")
+    button3.config(state="normal")
+    button4.config(state="normal")
         
 def view_passwords():
     try:
@@ -93,6 +114,11 @@ def view_passwords():
 
 # Fonction pour réinitialiser la base de données
 def reset_database():
+    # Désactive tous les boutons
+    for button in (button1, button2, button3, button4):
+        button.configure(state=tk.DISABLED)
+
+    # Demande confirmation
     confirm = input("Voulez-vous vraiment réinitialiser la base de données ? (Oui/Non) ")
     if confirm.lower() == "oui":
         with open(DB_PATH, "w") as f:
@@ -101,13 +127,26 @@ def reset_database():
     else:
         print("Réinitialisation annulée.")
 
+    # Réactive tous les boutons
+    for button in (button1, button2, button3, button4):
+        button.configure(state=tk.NORMAL)
+
 # Fonction pour quitter le programme
 def quit_program():
+    # Désactive tous les boutons
+    for button in (button1, button2, button3, button4):
+        button.configure(state=tk.DISABLED)
+
+    # Demande confirmation
     confirm = input("Voulez-vous vraiment quitter le programme ? (Oui/Non) ")
     if confirm.lower() == "oui":
         exit()
     else:
         print("Retour au programme.")
+
+    # Réactive tous les boutons
+    for button in (button1, button2, button3, button4):
+        button.configure(state=tk.NORMAL)
 
 # Crée la fenêtre principale
 root = tk.Tk()
